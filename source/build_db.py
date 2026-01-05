@@ -3,12 +3,20 @@ import os
 import chromadb
 from chromadb.utils import embedding_functions
 from dotenv import load_dotenv
+from image_crop import run_data_preparation
 
 # 환경 변수 로드
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 def build_vector_db(json_file):
+
+    if not os.path.exists(json_file):
+        print(f"{json_file} 파일이 존재하지 않습니다. run_data_preparation()를 실행합니다.")
+        run_data_preparation()
+        if not os.path.exists(json_file):
+            raise FileNotFoundError(f"{json_file} 생성 실패!")
+        
     # 1. ChromaDB 로컬 저장소 설정
     client = chromadb.PersistentClient(path="./chroma_db")
     
@@ -58,5 +66,5 @@ def build_vector_db(json_file):
     collection.add(documents=documents, metadatas=metadatas, ids=ids)
     print("벡터 데이터베이스 구축이 완료되었습니다.")
 
-if __name__ == "__main__":
-    build_vector_db("integrated_knowledge_base.json")
+# if __name__ == "__main__":
+#     build_vector_db("integrated_knowledge_base.json")

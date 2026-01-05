@@ -4,6 +4,8 @@ import chromadb
 from chromadb.utils import embedding_functions
 from dotenv import load_dotenv
 import json
+from chromadb.errors import NotFoundError
+from build_db import build_vector_db # 실제 파일명으로 수정하세요
 
 # 1. 환경 설정 및 API 키 로드
 load_dotenv()
@@ -56,11 +58,16 @@ class openAIAgent:
             model_name="text-embedding-3-small"
         )
         
-        # 컬렉션 로드
-        self.collection = self.chroma_client.get_collection(
-            name="cdr10028_manual", 
-            embedding_function=self.openai_ef
-        )
+        try:
+            # 컬렉션이 이미 존재하면 로드
+            self.collection = self.chroma_client.get_collection(
+                name="cdr10028_manual",
+                embedding_function=self.openai_ef
+            )
+        except NotFoundError:
+            # 컬렉션 없으면 JSON 파일에서 새로 생성
+            self.collection = build_vector_db("integrated_knowledge_base.json")
+
 
     def search_knowledge(self, query):
         """질문과 관련된 지식 및 이미지 경로 검색"""
@@ -120,26 +127,26 @@ class openAIAgent:
 # ==========================================
 # [실행부]
 # ==========================================
-if __name__ == "__main__":
-    agent = openAIAgent()
-    print("--------------------------------------------------")
-    print("지능형 기술지원 센터입니다.")
-    print("설치, 배선, 지문 등록 등 무엇이든 물어보세요. (종료: exit)")
-    print("--------------------------------------------------")
+# if __name__ == "__main__":
+    # agent = openAIAgent()
+    # print("--------------------------------------------------")
+    # print("지능형 기술지원 센터입니다.")
+    # print("설치, 배선, 지문 등록 등 무엇이든 물어보세요. (종료: exit)")
+    # print("--------------------------------------------------")
     
-    while True:
-        user_input = input("\n사용자: ")
-        if user_input.lower() in ['exit', 'quit', '종료']: 
-            break
+    # while True:
+    #     user_input = input("\n사용자: ")
+    #     if user_input.lower() in ['exit', 'quit', '종료']: 
+    #         break
         
-        # 답변 생성
-        answer, images = agent.answer(user_input)
+    #     # 답변 생성
+    #     answer, images = agent.answer(user_input)
         
-        # 결과 출력
-        print(f"\n[AI]: {answer}")
+    #     # 결과 출력
+    #     print(f"\n[AI]: {answer}")
         
-        # AI가 멀티모달 모드를 선택하여 '이미지 가이드'를 언급한 경우에만 이미지 경로 출력
-        if "이미지 가이드:" in answer:
-            print("\n[관련 이미지 가이드 시스템]")
-            for img in images:
-                print(f"▶ {img}")
+    #     # AI가 멀티모달 모드를 선택하여 '이미지 가이드'를 언급한 경우에만 이미지 경로 출력
+    #     if "이미지 가이드:" in answer:
+    #         print("\n[관련 이미지 가이드 시스템]")
+    #         for img in images:
+    #             print(f"▶ {img}")
